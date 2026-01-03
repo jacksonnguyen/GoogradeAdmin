@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutGrid, GraduationCap, Settings as SettingsIcon } from 'lucide-react';
+import { LayoutGrid, GraduationCap, Settings as SettingsIcon, Link2 } from 'lucide-react';
 import clsx from 'clsx';
 
 export function Sidebar() {
@@ -32,6 +32,17 @@ export function Sidebar() {
         >
           <LayoutGrid size={20} className="mr-3 group-[.active]:text-indigo-600 text-gray-400 group-hover:text-indigo-600" />
           Danh sách Lớp
+        </NavLink>
+
+        <NavLink 
+          to="/concepts" 
+          className={({ isActive }) => clsx(
+            "w-full flex items-center px-3 py-2.5 rounded-lg font-medium transition-colors group",
+            isActive ? "bg-indigo-50 text-indigo-700" : "text-gray-600 hover:bg-gray-50"
+          )}
+        >
+          <Link2 size={20} className="mr-3 group-[.active]:text-indigo-600 text-gray-400 group-hover:text-indigo-600" />
+          Knowledge Graph
         </NavLink>
 
         <div className="px-3 mt-8 mb-2 text-xs font-bold text-gray-400 uppercase tracking-wider">Truy cập nhanh</div>

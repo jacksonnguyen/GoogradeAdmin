@@ -45,5 +45,63 @@ export const ConceptService = {
       
     if (error) throw error;
     return data;
+  },
+
+  // CRUD Operations
+  async create(concept: Database['public']['Tables']['math_concepts']['Insert']) {
+    const { data, error } = await supabase
+      .from('math_concepts')
+      .insert(concept)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  async update(id: string, updates: Database['public']['Tables']['math_concepts']['Update']) {
+    const { data, error } = await supabase
+      .from('math_concepts')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  async delete(id: string) {
+    const { error } = await supabase
+      .from('math_concepts')
+      .delete()
+      .eq('id', id);
+    if (error) throw error;
+  },
+
+  // Relationship Management
+  async addRelationship(relationship: Database['public']['Tables']['concept_relationships']['Insert']) {
+    const { data, error } = await supabase
+      .from('concept_relationships')
+      .insert(relationship)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  async removeRelationship(id: number) {
+    const { error } = await supabase
+      .from('concept_relationships')
+      .delete()
+      .eq('id', id);
+    if (error) throw error;
+  },
+  
+  async getRelationships(conceptId: string) {
+     const { data, error } = await supabase
+      .from('concept_relationships')
+      .select('*')
+      .or(`source_id.eq.${conceptId},target_id.eq.${conceptId}`);
+     if (error) throw error;
+     return data;
   }
 };

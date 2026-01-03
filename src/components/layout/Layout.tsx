@@ -16,6 +16,8 @@ export function Layout() {
       crumbs.push({ label: "Soạn thảo bài học", path: path });
     } else if (path.includes('/settings')) {
        crumbs.push({ label: "Cấu hình", path: "/settings" });
+    } else if (path.includes('/concepts')) {
+       crumbs.push({ label: "Knowledge Graph", path: "/concepts" });
     }
 
     return (
