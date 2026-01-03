@@ -10,6 +10,7 @@ export function useLessonEditor(lessonId?: string) {
   const [title, setTitle] = useState('');
   const [grade, setGrade] = useState('8');
   const [content, setContent] = useState('');
+  const [customCss, setCustomCss] = useState('');
   const [prerequisites, setPrerequisites] = useState<Set<string>>(new Set());
   
   // Initialize from localStorage ONLY
@@ -41,6 +42,7 @@ export function useLessonEditor(lessonId?: string) {
       if (lesson) {
         setTitle(lesson.title);
         setContent(lesson.content || '');
+        setCustomCss(lesson.custom_css || '');
       }
     } catch (err) {
       console.error(err);
@@ -95,6 +97,7 @@ export function useLessonEditor(lessonId?: string) {
         const lessonData = {
             title: title,
             content: content,
+            custom_css: customCss,
             type: 'theory' as const,
             updated_at: new Date().toISOString()
         };
@@ -123,6 +126,7 @@ export function useLessonEditor(lessonId?: string) {
     title, setTitle,
     grade, setGrade,
     content, setContent,
+    customCss, setCustomCss,
     prerequisites, setPrerequisites,
     // We don't expose setApiKey anymore to the Editor
     

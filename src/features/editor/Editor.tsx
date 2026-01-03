@@ -1,6 +1,7 @@
 import { 
   ArrowLeft, Cloud, Save, 
-  Wand2, SlidersHorizontal, Network, Search, FileText, ChevronDown, X, Lightbulb, Link2Off 
+  Wand2, SlidersHorizontal, Network, Search, FileText, ChevronDown, X, Lightbulb, Link2Off,
+  Code, Eye, LayoutTemplate 
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useLessonEditor } from '../../hooks/useLessonEditor';
@@ -22,6 +23,7 @@ export function Editor() {
     title, setTitle,
     grade, setGrade,
     content, setContent,
+    customCss, setCustomCss, // Added customCss state
     prerequisites, setPrerequisites,
     isGenerating, isSaving, status,
     generateContent, saveLesson
@@ -29,6 +31,7 @@ export function Editor() {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
+  const [viewMode, setViewMode] = useState<'visual' | 'code'>('visual'); // visual | code
 
   // Relationship Logic
   const filteredRelations = conceptsDB.filter(
@@ -72,6 +75,24 @@ export function Editor() {
           />
         </div>
         <div className="flex items-center gap-4">
+          {/* View Mode Toggle */}
+          <div className="bg-gray-100 p-1 rounded-lg flex gap-1 mr-2">
+            <button 
+              onClick={() => setViewMode('visual')}
+              className={`p-1.5 rounded-md transition-all ${viewMode === 'visual' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+              title="Visual Editor"
+            >
+              <LayoutTemplate size={18} />
+            </button>
+            <button 
+              onClick={() => setViewMode('code')}
+              className={`p-1.5 rounded-md transition-all ${viewMode === 'code' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+              title="Code Editor (HTML/CSS)"
+            >
+              <Code size={18} />
+            </button>
+          </div>
+
           <span className="text-xs text-gray-400 flex items-center gap-1">
             <Cloud size={14} /> {status || 'Đã lưu tự động'}
           </span>
@@ -91,29 +112,68 @@ export function Editor() {
       </div>
 
       <div className="flex-1 flex overflow-hidden">
-        {/* LEFT: Rich Text Editor Area */}
+        {/* LEFT: Editor Area (Visual or Code) */}
         <div className="flex-1 flex flex-col overflow-y-auto border-r border-gray-200 bg-gray-50/30">
-          {/* Custom Toolbar (Visual only for now, mapped to TipTap internally if we refactor properly, but for now we use TipTap's own toolbar inside the component) */}
-          <div className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b border-gray-200 px-6 py-2.5 flex items-center gap-1 shadow-sm">
-             {/* We can integrate specific actions here later. For now, we use a simplified placeholder or just let TipTap handle it. */}
-             <div className="text-xs text-gray-400 italic">Editor Toolbar</div>
-             
-             <div className="flex-1"></div>
-             <button 
-                onClick={generateContent}
-                disabled={isGenerating}
-                className="text-xs text-indigo-600 font-semibold hover:bg-indigo-50 px-3 py-1.5 rounded-full flex items-center gap-1 transition-colors border border-transparent hover:border-indigo-100 disabled:opacity-50"
-             >
-               <Wand2 size={16} /> {isGenerating ? 'AI đang viết...' : 'Viết bằng AI'}
-             </button>
-          </div>
+          
+          {viewMode === 'visual' ? (
+            <>
+              {/* Visual Toolbar */}
+              <div className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b border-gray-200 px-6 py-2.5 flex items-center gap-1 shadow-sm">
+                 <div className="text-xs text-gray-400 italic">Visual Editor</div>
+                 <div className="flex-1"></div>
+                 <button 
+                    onClick={generateContent}
+                    disabled={isGenerating}
+                    className="text-xs text-indigo-600 font-semibold hover:bg-indigo-50 px-3 py-1.5 rounded-full flex items-center gap-1 transition-colors border border-transparent hover:border-indigo-100 disabled:opacity-50"
+                 >
+                   <Wand2 size={16} /> {isGenerating ? 'AI đang viết...' : 'Viết bằng AI'}
+                 </button>
+              </div>
 
-          <div className="flex-1 relative">
-             <TipTapEditor content={content} onChange={setContent} className="min-h-full p-10 max-w-3xl mx-auto" />
-          </div>
+              {/* Styled components wrapper to apply custom CSS live */}
+              <style>{customCss}</style>
+              <div className="flex-1 relative lesson-preview-container">
+                 <TipTapEditor content={content} onChange={setContent} className="min-h-full p-10 max-w-3xl mx-auto" />
+              </div>
+            </>
+          ) : (
+            <div className="editor-code-mode h-full flex flex-col">
+                <div className="flex-1 flex min-h-0">
+                    {/* HTML Panel */}
+                    <div className="editor-code-mode__panel flex-1 flex flex-col border-r border-gray-200">
+                        <div className="editor-code-mode__header bg-gray-50 px-4 py-2 border-b border-gray-200 flex justify-between items-center">
+                            <span className="font-mono text-xs font-bold text-gray-500">HTML CONTENT</span>
+                            <Eye size={14} className="text-gray-400" />
+                        </div>
+                        <textarea 
+                            className="editor-code-mode__textarea flex-1 p-4 font-mono text-sm resize-none focus:outline-none"
+                            value={content}
+                            onChange={(e) => setContent(e.target.value)}
+                            placeholder="Enter HTML content here..."
+                            spellCheck={false}
+                        />
+                    </div>
+                    
+                    {/* CSS Panel */}
+                    <div className="editor-code-mode__panel flex-1 flex flex-col">
+                        <div className="editor-code-mode__header bg-gray-50 px-4 py-2 border-b border-gray-200 flex justify-between items-center">
+                            <span className="font-mono text-xs font-bold text-gray-500">CUSTOM CSS</span>
+                            <Code size={14} className="text-gray-400" />
+                        </div>
+                         <textarea 
+                            className="editor-code-mode__textarea editor-code-mode__textarea--css flex-1 p-4 font-mono text-sm resize-none focus:outline-none text-blue-600"
+                            value={customCss}
+                            onChange={(e) => setCustomCss(e.target.value)}
+                            placeholder=".my-class { color: red; }"
+                            spellCheck={false}
+                        />
+                    </div>
+                </div>
+            </div>
+          )}
         </div>
 
-        {/* RIGHT: Settings & Relationships Sidebar */}
+        {/* RIGHT: Settings Side Panel */}
         <div className="w-80 bg-white flex flex-col border-l border-gray-200 flex-shrink-0 shadow-[rgba(0,0,0,0.05)_0px_0px_10px] z-10">
           <div className="p-5 border-b border-gray-100">
             <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">

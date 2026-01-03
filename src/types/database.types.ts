@@ -39,6 +39,7 @@ export interface Database {
           title: string
           slug: string | null
           content: string | null
+          custom_css: string | null
           type: 'theory' | 'practice'
           order_index: number
           is_published: boolean
@@ -51,6 +52,7 @@ export interface Database {
           title: string
           slug?: string | null
           content?: string | null
+          custom_css?: string | null
           type?: 'theory' | 'practice'
           order_index?: number
           is_published?: boolean
@@ -63,6 +65,7 @@ export interface Database {
           title?: string
           slug?: string | null
           content?: string | null
+          custom_css?: string | null
           type?: 'theory' | 'practice'
           order_index?: number
           is_published?: boolean
