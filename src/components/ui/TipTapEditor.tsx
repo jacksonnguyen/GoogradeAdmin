@@ -4,16 +4,17 @@ import Underline from '@tiptap/extension-underline';
 import Link from '@tiptap/extension-link';
 import TextAlign from '@tiptap/extension-text-align';
 import clsx from 'clsx';
-import { Bold, Italic, Underline as UnderlineIcon, AlignLeft, AlignCenter, AlignRight, List, ListOrdered } from 'lucide-react';
+import { Bold, Italic, Underline as UnderlineIcon, AlignLeft, AlignCenter, List, ListOrdered } from 'lucide-react';
 // import styles from './TipTapEditor.module.scss'; // REMOVED
 
 interface TipTapEditorProps {
   content: string;
   onChange: (content: string) => void;
   editable?: boolean;
+  className?: string; // Add className optional prop
 }
 
-export function TipTapEditor({ content, onChange, editable = true }: TipTapEditorProps) {
+export function TipTapEditor({ content, onChange, editable = true, className = '' }: TipTapEditorProps) {
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -33,7 +34,7 @@ export function TipTapEditor({ content, onChange, editable = true }: TipTapEdito
   }
 
   return (
-    <div className="bg-white border-2 border-border rounded-2xl flex flex-col overflow-hidden shadow-sm">
+    <div className={clsx("bg-white border-2 border-border rounded-2xl flex flex-col overflow-hidden shadow-sm", className)}>
       <div className="flex items-center gap-1 p-2 bg-gray-50 border-b-2 border-border flex-wrap">
         <ToolbarButton 
             onClick={() => editor.chain().focus().toggleBold().run()}

@@ -7,9 +7,11 @@ export function useLessonEditor(lessonId?: string) {
   const navigate = useNavigate();
   
   // State
-  const [topic, setTopic] = useState('');
+  const [title, setTitle] = useState('');
   const [grade, setGrade] = useState('8');
   const [content, setContent] = useState('');
+  const [prerequisites, setPrerequisites] = useState<Set<string>>(new Set());
+  
   // Initialize from localStorage ONLY
   const [apiKey, setApiKey] = useState(() => localStorage.getItem('gemini_api_key') || '');
   
@@ -37,7 +39,7 @@ export function useLessonEditor(lessonId?: string) {
     try {
       const lesson = await LessonService.getById(id);
       if (lesson) {
-        setTopic(lesson.title);
+        setTitle(lesson.title);
         setContent(lesson.content || '');
       }
     } catch (err) {
@@ -55,7 +57,7 @@ export function useLessonEditor(lessonId?: string) {
         alert("Please set your Gemini API Key in Settings first.");
         return;
     }
-    if (!topic) {
+    if (!title) {
         alert("Please enter a topic");
         return;
     }
@@ -65,7 +67,7 @@ export function useLessonEditor(lessonId?: string) {
     try {
       const generatedHtml = await generateLessonContent({
         apiKey: currentKey,
-        topic,
+        topic: title,
         grade,
         type: 'theory'
       });
@@ -81,7 +83,7 @@ export function useLessonEditor(lessonId?: string) {
   };
 
   const saveLesson = async () => {
-    if (!topic) {
+    if (!title) {
         alert('Topic title is required');
         return;
     }
@@ -91,7 +93,7 @@ export function useLessonEditor(lessonId?: string) {
     
     try {
         const lessonData = {
-            title: topic,
+            title: title,
             content: content,
             type: 'theory' as const,
             updated_at: new Date().toISOString()
@@ -118,9 +120,10 @@ export function useLessonEditor(lessonId?: string) {
 
   return {
     // Data
-    topic, setTopic,
+    title, setTitle,
     grade, setGrade,
     content, setContent,
+    prerequisites, setPrerequisites,
     // We don't expose setApiKey anymore to the Editor
     
     // UI Status
