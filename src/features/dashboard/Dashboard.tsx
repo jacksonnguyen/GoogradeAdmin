@@ -9,7 +9,6 @@ export function Dashboard() {
       name: 'Lớp 9A', 
       desc: 'Chương trình chuẩn • 2023-2024', 
       lessons: 12, 
-      students: 45, 
       color: 'green'
     },
     { 
@@ -17,7 +16,6 @@ export function Dashboard() {
       name: 'Lớp 9B (Nâng cao)', 
       desc: 'Chương trình chuyên Toán', 
       lessons: 15, 
-      students: 32, 
       color: 'blue'
     }
   ];
@@ -52,7 +50,6 @@ export function Dashboard() {
             <p className="text-sm text-gray-500 mb-4">{group.desc}</p>
             <div className="flex items-center gap-4 text-xs font-medium text-gray-500 border-t border-gray-50 pt-4">
               <span className="flex items-center gap-1"><Library size={14} /> {group.lessons} Bài giảng</span>
-              <span className="flex items-center gap-1"><Users size={14} /> {group.students} Học sinh</span>
             </div>
           </div>
         ))}

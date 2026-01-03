@@ -1,6 +1,8 @@
 // Custom SCSS Components
 // Note: Tailwind is imported separately in tailwind.css
 @use "sass:meta";
+@reference "./tailwind.css";
+
 
 // Base styles
 @layer base {

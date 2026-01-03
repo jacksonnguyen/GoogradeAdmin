@@ -1,0 +1,1 @@
+export const DEFAULT_GEMINI_KEY = "AIzaSyCBM9dY9Gc8amYqd25HEQQmsKl6jfGZJ5A";

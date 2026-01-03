@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { generateLessonContent } from '../services/ai/gemini';
 import { LessonService } from '../services/database/lessons';
 
+import { DEFAULT_GEMINI_KEY } from '../constants';
 export function useLessonEditor(lessonId?: string) {
   const navigate = useNavigate();
   
@@ -13,8 +14,8 @@ export function useLessonEditor(lessonId?: string) {
   const [customCss, setCustomCss] = useState('');
   const [prerequisites, setPrerequisites] = useState<Set<string>>(new Set());
   
-  // Initialize from localStorage ONLY
-  const [apiKey, setApiKey] = useState(() => localStorage.getItem('gemini_api_key') || '');
+  // Initialize from localStorage OR default
+  const [apiKey, setApiKey] = useState(() => localStorage.getItem('gemini_api_key') || DEFAULT_GEMINI_KEY);
   
   // UI State
   const [isGenerating, setIsGenerating] = useState(false);
@@ -53,7 +54,7 @@ export function useLessonEditor(lessonId?: string) {
   // Handlers
   const generateContent = async () => {
     // Re-check localStorage just in case it changed since mount
-    const currentKey = localStorage.getItem('gemini_api_key'); 
+    const currentKey = localStorage.getItem('gemini_api_key') || DEFAULT_GEMINI_KEY; 
     
     if (!currentKey) {
         alert("Please set your Gemini API Key in Settings first.");

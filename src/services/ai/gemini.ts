@@ -27,7 +27,10 @@ export const generateLessonContent = async ({
     Requirements:
     - Use semantic HTML (h2, h3, p, ul, ol, li, strong, em).
     - Do NOT include <html>, <head>, or <body> tags. Just the content.
-    - Use generic classes for styling if needed: 'highlight', 'example-box', 'warning-box'.
+    - CSS Class Rules:
+      - Do NOT use more than 4 utility classes per element.
+      - Use BEM (Block Element Modifier) class names for complex styling (e.g., 'lesson-card', 'lesson-card__title', 'example-box', 'example-box--highlight').
+      - Avoid deep nesting.
     - Language: Vietnamese.
     - Tone: Educational, encouraging, and clear.
     ${additionalInstructions ? `- Additional: ${additionalInstructions}` : ''}
@@ -41,4 +44,28 @@ export const generateLessonContent = async ({
   
   // Strip markdown code blocks if present
   return text.replace(/```html|```/g, '');
+};
+
+export const chatWithGemini = async (apiKey: string, history: {role: 'user' | 'model', parts: string}[], message: string) => {
+  if (!apiKey) throw new Error("API Key is required");
+
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+
+  // Map simplified history to SDK format
+  const formattedHistory = history.map(msg => ({
+    role: msg.role,
+    parts: [{ text: msg.parts }]
+  }));
+
+  const chat = model.startChat({
+    history: formattedHistory,
+    generationConfig: {
+      maxOutputTokens: 1000,
+    },
+  });
+
+  const result = await chat.sendMessage(message);
+  const response = await result.response;
+  return response.text();
 };

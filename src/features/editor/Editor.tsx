@@ -33,7 +33,8 @@ export function Editor() {
     customCss, setCustomCss,
     prerequisites, setPrerequisites,
     isSaving, status,
-    saveLesson
+    saveLesson,
+    generateContent, isGenerating
   } = useLessonEditor(id);
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -87,18 +88,37 @@ export function Editor() {
     setPrerequisites(newSet);
   };
 
-  // AI Chat Logic (Mock)
-  const handleSendMessage = () => {
+// AI Chat Logic
+  const handleSendMessage = async () => {
     if (!chatInput.trim()) return;
     
-    const newMsg = { role: 'user' as const, text: chatInput };
-    setChatMessages(prev => [...prev, newMsg]);
+    // 1. Add User Message immediately
+    const userMsg = { role: 'user' as const, text: chatInput };
+    setChatMessages(prev => [...prev, userMsg]);
     setChatInput("");
     
-    // Simulate AI response
-    setTimeout(() => {
-        setChatMessages(prev => [...prev, { role: 'ai', text: `That's a great point about "${newMsg.text}". I can help you expand on that in the main content. Would you like me to draft a paragraph?` }]);
-    }, 1000);
+    // 2. Prepare History for Gemini (map 'ai' -> 'model')
+    const history = chatMessages.map(m => ({
+        role: m.role === 'ai' ? 'model' : 'user',
+        parts: m.text
+    }));
+
+    // 3. Call API
+    try {
+        const { DEFAULT_GEMINI_KEY } = await import('../../constants');
+        const apiKey = localStorage.getItem('gemini_api_key') || DEFAULT_GEMINI_KEY;
+        // Use dynamic import or pass function via props if needed, but for now direct import
+        const { chatWithGemini } = await import('../../services/ai/gemini');
+        
+        // Show temporary loading indicator or just wait
+        const responseText = await chatWithGemini(apiKey, history as any, userMsg.text); // Cast history for now or fix types
+
+        // 4. Add AI Response
+        setChatMessages(prev => [...prev, { role: 'ai', text: responseText }]);
+    } catch (error) {
+        console.error("Chat Error:", error);
+        setChatMessages(prev => [...prev, { role: 'ai', text: "Sorry, I encountered an error connecting to Gemini. Please check your API Key." }]);
+    }
   };
 
   return (
@@ -346,16 +366,12 @@ export function Editor() {
                 </div>
             ) : (
                 // AI ASSISTANT PANEL
-                <div className="flex flex-col h-full">
+                <div className="editor-chat">
                     {/* Chat History */}
-                    <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                    <div className="editor-chat__history">
                         {chatMessages.map((msg, idx) => (
-                             <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                                <div className={`max-w-[85%] rounded-2xl p-3 text-sm ${
-                                    msg.role === 'user' 
-                                    ? 'bg-indigo-600 text-white rounded-br-none' 
-                                    : 'bg-white border border-gray-200 text-gray-800 rounded-bl-none shadow-sm'
-                                }`}>
+                             <div key={idx} className={`editor-chat__message ${msg.role === 'user' ? 'editor-chat__message--user' : 'editor-chat__message--ai'}`}>
+                                <div className={`editor-chat__bubble ${msg.role === 'user' ? 'editor-chat__bubble--user' : 'editor-chat__bubble--ai'}`}>
                                    {msg.text}
                                 </div>
                              </div>
@@ -363,19 +379,19 @@ export function Editor() {
                     </div>
 
                     {/* Chat Input */}
-                    <div className="p-3 bg-white border-t border-gray-200">
+                    <div className="editor-chat__input-area">
                         <div className="relative">
                             <textarea 
                                 value={chatInput}
                                 onChange={(e) => setChatInput(e.target.value)}
                                 onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); }}}
                                 placeholder="Gõ yêu cầu của bạn..."
-                                className="w-full bg-gray-50 border-gray-200 rounded-xl pl-3 pr-10 py-3 text-sm focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 outline-none resize-none no-scrollbar h-12 max-h-32"
+                                className="editor-chat__textarea"
                             />
                             <button 
                                 onClick={handleSendMessage}
                                 disabled={!chatInput.trim()}
-                                className="absolute right-2 top-2 p-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:hover:bg-indigo-600 transition-colors"
+                                className="editor-chat__send-btn"
                             >
                                 <Send size={14} />
                             </button>
