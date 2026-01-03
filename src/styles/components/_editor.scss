@@ -1,0 +1,29 @@
+// Editor Page Component (BEM)
+.editor-header {
+  @apply flex items-center gap-4 mb-6;
+
+  &__title {
+    @apply text-2xl font-bold;
+  }
+
+  &__status {
+    @apply text-sm text-primary font-medium;
+  }
+}
+
+.editor-form {
+  @extend .card;
+  @apply mb-6;
+
+  &__row {
+    @apply flex justify-between items-center mb-6;
+  }
+
+  &__grid {
+    @apply grid grid-cols-[2fr_1fr] gap-6 mb-6;
+  }
+
+  &__actions {
+    @apply flex justify-end gap-3;
+  }
+}

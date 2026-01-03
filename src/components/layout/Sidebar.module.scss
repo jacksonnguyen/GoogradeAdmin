@@ -1,0 +1,83 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.sidebar {
+  width: 260px;
+  height: 100vh;
+  background-color: $color-surface;
+  border-right: 1px solid $color-border;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  left: 0;
+  top: 0;
+  padding: $spacing-md;
+
+  .logo {
+    margin-bottom: $spacing-xl;
+    padding: $spacing-sm;
+    
+    h2 {
+      font-size: 24px;
+      color: $color-text;
+      
+      .highlight {
+        color: $color-primary;
+      }
+    }
+  }
+
+  .nav {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-xs;
+
+    .navItem {
+      @include flex-center;
+      justify-content: flex-start;
+      gap: $spacing-md;
+      padding: $spacing-md;
+      border-radius: $radius-md;
+      text-decoration: none;
+      color: $color-text-light;
+      font-weight: 500;
+      transition: all 0.2s;
+
+      &:hover {
+        background-color: rgba($color-primary, 0.1);
+        color: $color-primary-dark;
+      }
+
+      &.active {
+        background-color: rgba($color-primary, 0.15);
+        color: $color-primary-dark;
+        font-weight: 700;
+      }
+    }
+  }
+
+  .footer {
+    border-top: 1px solid $color-border;
+    padding-top: $spacing-md;
+
+    .logoutBtn {
+      @include flex-center;
+      justify-content: flex-start;
+      gap: $spacing-md;
+      width: 100%;
+      padding: $spacing-md;
+      border: none;
+      background: none;
+      color: $color-text-light;
+      cursor: pointer;
+      border-radius: $radius-md;
+      transition: all 0.2s;
+
+      &:hover {
+        background-color: rgba($color-danger, 0.1);
+        color: $color-danger;
+      }
+    }
+  }
+}

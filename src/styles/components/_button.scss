@@ -1,0 +1,35 @@
+// Button Component (BEM)
+.btn {
+  @apply inline-flex items-center justify-center rounded-xl font-bold;
+  @apply transition-all duration-200 active:scale-95;
+  @apply disabled:opacity-50 disabled:pointer-events-none;
+
+  // Variants
+  &--primary {
+    @apply bg-primary text-white hover:bg-primary-dark;
+    box-shadow: 0 4px 0 0 #46a302;
+  }
+
+  &--secondary {
+    @apply bg-secondary text-white hover:brightness-110;
+    box-shadow: 0 4px 0 0 #1899d6;
+  }
+
+  &--outline {
+    @apply border-2 border-border bg-white text-text-light;
+    @apply hover:bg-gray-50 hover:border-text-light;
+  }
+
+  &--ghost {
+    @apply bg-transparent text-text-light hover:bg-gray-100;
+  }
+
+  &--danger {
+    @apply bg-danger text-white hover:brightness-110;
+  }
+
+  // Sizes
+  &--sm { @apply px-3 py-1.5 text-sm; }
+  &--md { @apply px-4 py-2 text-base; }
+  &--lg { @apply px-6 py-3 text-lg; }
+}

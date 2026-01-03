@@ -1,0 +1,40 @@
+// Tailwind CSS v4
+@import "tailwindcss";
+
+// Custom Theme (Tailwind v4 uses @theme in CSS)
+@theme {
+  --font-sans: "Outfit", system-ui, sans-serif;
+  
+  --color-primary: #58cc02;
+  --color-primary-dark: #46a302;
+  --color-secondary: #1cb0f6;
+  --color-danger: #ea2b2b;
+  --color-surface: #ffffff;
+  --color-background: #f0f2f5;
+  --color-border: #e5e5e5;
+  --color-text: #3c3c3c;
+  --color-text-light: #777777;
+  
+  --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+// Base styles
+@layer base {
+  @import 'base/reset';
+  @import 'base/typography';
+}
+
+// Components
+@layer components {
+  @import 'components/button';
+  @import 'components/card';
+  @import 'components/form';
+  @import 'components/sidebar';
+  @import 'components/page-header';
+  @import 'components/empty-state';
+  @import 'components/filter-bar';
+  @import 'components/lesson-card';
+  @import 'components/concept-card';
+  @import 'components/editor';
+}

@@ -1,0 +1,18 @@
+// Empty State Component (BEM)
+.empty-state {
+  @apply text-center py-16 bg-white rounded-2xl;
+  @apply border-2 border-border border-dashed;
+
+  &__icon {
+    @apply bg-gray-50 w-16 h-16 rounded-full;
+    @apply flex items-center justify-center mx-auto mb-4;
+  }
+
+  &__title {
+    @apply text-xl font-bold mb-2;
+  }
+
+  &__desc {
+    @apply text-text-light mb-6;
+  }
+}

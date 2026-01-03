@@ -1,0 +1,90 @@
+@use '../../styles/variables' as *;
+
+.editorContainer {
+  background: white;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+    padding: $spacing-sm;
+    background: #f8f9fa;
+    border-bottom: 1px solid $color-border;
+    flex-wrap: wrap;
+
+    button {
+      background: none;
+      border: none;
+      padding: 6px;
+      border-radius: 4px;
+      cursor: pointer;
+      color: $color-text-light;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      &:hover {
+        background: rgba(0, 0, 0, 0.05);
+        color: $color-text;
+      }
+
+      &.isActive {
+        background: rgba($color-primary, 0.1);
+        color: $color-primary-dark;
+      }
+    }
+
+    .separator {
+      width: 1px;
+      height: 20px;
+      background: $color-border;
+      margin: 0 $spacing-xs;
+    }
+  }
+
+  // TipTap Content Styles
+  .content {
+    padding: $spacing-md;
+    min-height: 400px;
+    outline: none;
+
+    // TipTap internal div
+    > div {
+      outline: none;
+      min-height: 400px;
+    }
+
+    // Default typography inside editor
+    h2 { margin-top: 1rem; margin-bottom: 0.5rem; }
+    h3 { margin-top: 0.8rem; margin-bottom: 0.4rem; font-size: 1.1em; color: $color-text; }
+    p { margin-bottom: 0.8rem; line-height: 1.6; }
+    ul, ol { margin-left: 1.5rem; margin-bottom: 1rem; }
+    li { margin-bottom: 0.4rem; }
+    
+    // Custom classes from AI
+    .highlight {
+      background-color: #fff3cd;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+    .example-box {
+      background: #f0fdf4;
+      border-left: 4px solid $color-primary;
+      padding: 1rem;
+      margin: 1rem 0;
+      border-radius: 0 $radius-md $radius-md 0;
+    }
+    .warning-box {
+      background: #fff5f5;
+      border-left: 4px solid $color-danger;
+      padding: 1rem;
+      margin: 1rem 0;
+      border-radius: 0 $radius-md $radius-md 0;
+    }
+  }
+}
