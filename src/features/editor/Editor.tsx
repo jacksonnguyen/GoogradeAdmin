@@ -1,6 +1,5 @@
 import { 
-  ArrowLeft, Cloud, Save, 
-  Wand2, Network, Search, FileText, ChevronDown, X, Link2Off,
+  ArrowLeft, Cloud, Save, Wand2, ChevronDown,
   Code, Eye, LayoutTemplate, Bot, Settings as SettingsIcon, Send
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -14,6 +13,7 @@ import Underline from '@tiptap/extension-underline';
 import Link from '@tiptap/extension-link';
 import TextAlign from '@tiptap/extension-text-align';
 import { EditorToolbar } from './components/EditorToolbar';
+import { RelationshipManager } from './components/RelationshipManager';
 
 // Mock Data for Relationships
 const conceptsDB = [
@@ -34,11 +34,8 @@ export function Editor() {
     prerequisites, setPrerequisites,
     isSaving, status,
     saveLesson,
-    generateContent, isGenerating
   } = useLessonEditor(id);
-
-  const [searchQuery, setSearchQuery] = useState("");
-  const [showDropdown, setShowDropdown] = useState(false);
+  // Note: generateContent/isGenerating available but not connected to UI yet
   const [viewMode, setViewMode] = useState<'visual' | 'code'>('visual');
   const [activeTab, setActiveTab] = useState<'settings' | 'ai'>('settings');
   const [chatInput, setChatInput] = useState("");
@@ -69,22 +66,16 @@ export function Editor() {
   }, [content, editor]);
 
 
-  // Relationship Logic
-  const filteredRelations = conceptsDB.filter(
-    c => c.name.toLowerCase().includes(searchQuery.toLowerCase()) && !prerequisites.has(c.id)
-  );
-
-  const addRelation = (relationId: string) => {
+  // Relationship handlers (passed to RelationshipManager)
+  const handleAddRelation = (id: string) => {
     const newSet = new Set(prerequisites);
-    newSet.add(relationId);
+    newSet.add(id);
     setPrerequisites(newSet);
-    setSearchQuery("");
-    setShowDropdown(false);
   };
 
-  const removeRelation = (relationId: string) => {
+  const handleRemoveRelation = (id: string) => {
     const newSet = new Set(prerequisites);
-    newSet.delete(relationId);
+    newSet.delete(id);
     setPrerequisites(newSet);
   };
 
@@ -287,82 +278,12 @@ export function Editor() {
                     </div>
 
                     {/* RELATIONSHIPS MANAGER */}
-                    <div className="bg-white rounded-xl border border-indigo-100 shadow-sm p-4 relative overflow-visible">
-                    <div className="absolute -top-3 left-3 bg-white px-2">
-                        <label className="flex items-center gap-1.5 text-sm font-bold text-indigo-600">
-                        <Network size={18} />
-                        Bài học liên quan
-                        </label>
-                    </div>
-                    
-                    <p className="text-xs text-gray-500 mb-4 mt-2">Gắn thẻ các bài học cũ (Lớp 7, 8) để học sinh ôn tập trước.</p>
-                    
-                    {/* Search Input for Relations */}
-                    <div className="relative group mb-4">
-                        <Search className="absolute left-3 top-2.5 text-gray-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
-                        <input 
-                        type="text" 
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        onFocus={() => { if(searchQuery) setShowDropdown(true) }}
-                        className="w-full text-sm border border-gray-200 rounded-lg pl-9 pr-3 py-2 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition-all placeholder-gray-400" 
-                        placeholder="Tìm kiến thức cũ..." 
-                        />
-                        
-                        {/* Dropdown Results */}
-                        {showDropdown && searchQuery && (
-                        <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-100 rounded-xl shadow-xl z-50 max-h-56 overflow-y-auto animate-in fade-in zoom-in-95 duration-100">
-                            {filteredRelations.length > 0 ? (
-                            filteredRelations.map(c => (
-                                <div 
-                                key={c.id}
-                                onClick={() => addRelation(c.id)} 
-                                className="px-4 py-3 hover:bg-indigo-50 cursor-pointer border-b border-gray-50 last:border-0 flex justify-between items-center group transition-colors"
-                                >
-                                <div className="flex items-center gap-2">
-                                    <FileText className="text-gray-400 group-hover:text-indigo-500" size={16} />
-                                    <span className="text-sm text-gray-700 group-hover:text-indigo-700 font-medium">{c.name}</span>
-                                </div>
-                                <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full group-hover:bg-white border group-hover:border-indigo-100">{c.grade}</span>
-                                </div>
-                            ))
-                            ) : (
-                            <div className="px-4 py-3 text-xs text-gray-400 text-center italic">Không tìm thấy</div>
-                            )}
-                        </div>
-                        )}
-                        {showDropdown && <div className="fixed inset-0 z-40 bg-transparent" onClick={() => setShowDropdown(false)} />}
-                    </div>
-
-                    {/* Selected List */}
-                    <div className="space-y-2">
-                        {prerequisites.size === 0 ? (
-                        <div className="text-center py-6 border-2 border-dashed border-gray-100 rounded-lg bg-gray-50/50">
-                            <Link2Off className="text-gray-300 mx-auto mb-1" size={30} />
-                            <p className="text-xs text-gray-400 font-medium">Chưa có liên kết nào</p>
-                        </div>
-                        ) : (
-                        Array.from(prerequisites).map(id => {
-                            const concept = conceptsDB.find(c => c.id === id);
-                            if (!concept) return null;
-                            return (
-                            <div key={id} className="flex items-center justify-between bg-white border border-gray-200 shadow-sm rounded-lg px-3 py-2 text-sm group hover:border-indigo-300 transition-all">
-                                <div className="flex flex-col overflow-hidden">
-                                <span className="text-gray-800 font-medium text-xs truncate w-40" title={concept.name}>{concept.name}</span>
-                                <div className="flex items-center gap-1 mt-0.5">
-                                    <span className={`w-1.5 h-1.5 rounded-full ${concept.grade === 'Lớp 8' ? 'bg-green-500' : 'bg-orange-500'}`}></span>
-                                    <span className="text-[10px] text-gray-400">{concept.grade}</span>
-                                </div>
-                                </div>
-                                <button onClick={() => removeRelation(id)} className="text-gray-300 hover:text-red-500 hover:bg-red-50 rounded p-1 transition-colors">
-                                <X size={16} />
-                                </button>
-                            </div>
-                            );
-                        })
-                        )}
-                    </div>
-                    </div>
+                    <RelationshipManager 
+                      conceptsDB={conceptsDB}
+                      prerequisites={prerequisites}
+                      onAddRelation={handleAddRelation}
+                      onRemoveRelation={handleRemoveRelation}
+                    />
                 </div>
             ) : (
                 // AI ASSISTANT PANEL

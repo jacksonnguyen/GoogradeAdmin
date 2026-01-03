@@ -23,4 +23,5 @@
   @include meta.load-css('components/concept-card');
   @include meta.load-css('components/editor');
   @include meta.load-css('components/editor-code-mode');
+  @include meta.load-css('components/relationship-manager');
 }
