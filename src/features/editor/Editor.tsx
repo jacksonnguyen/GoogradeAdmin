@@ -1,6 +1,6 @@
 import { 
   ArrowLeft, Cloud, Save, 
-  Wand2, SlidersHorizontal, Network, Search, FileText, ChevronDown, X, Lightbulb, Link2Off,
+  Wand2, Network, Search, FileText, ChevronDown, X, Link2Off,
   Code, Eye, LayoutTemplate, Bot, Settings as SettingsIcon, Send
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -32,7 +32,7 @@ export function Editor() {
     content, setContent,
     customCss, setCustomCss,
     prerequisites, setPrerequisites,
-    isGenerating, isSaving, status,
+    isSaving, status,
     saveLesson
   } = useLessonEditor(id);
 

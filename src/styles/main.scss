@@ -1,41 +1,24 @@
-// Tailwind CSS v4
-@import "tailwindcss";
-
-// Custom Theme (Tailwind v4 uses @theme in CSS)
-@theme {
-  --font-sans: "Outfit", system-ui, sans-serif;
-  
-  --color-primary: #58cc02;
-  --color-primary-dark: #46a302;
-  --color-secondary: #1cb0f6;
-  --color-danger: #ea2b2b;
-  --color-surface: #ffffff;
-  --color-background: #f0f2f5;
-  --color-border: #e5e5e5;
-  --color-text: #3c3c3c;
-  --color-text-light: #777777;
-  
-  --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
-  --shadow-md: 0 4px 8px rgba(0,0,0,0.1);
-}
+// Custom SCSS Components
+// Note: Tailwind is imported separately in tailwind.css
+@use "sass:meta";
 
 // Base styles
 @layer base {
-  @use 'base/reset';
-  @use 'base/typography';
+  @include meta.load-css('base/reset');
+  @include meta.load-css('base/typography');
 }
 
 // Components
 @layer components {
-  @use 'components/button';
-  @use 'components/card';
-  @use 'components/form';
-  @use 'components/sidebar';
-  @use 'components/page-header';
-  @use 'components/empty-state';
-  @use 'components/filter-bar';
-  @use 'components/lesson-card';
-  @use 'components/concept-card';
-  @use 'components/editor';
-  @use 'components/editor-code-mode';
+  @include meta.load-css('components/button');
+  @include meta.load-css('components/card');
+  @include meta.load-css('components/form');
+  @include meta.load-css('components/sidebar');
+  @include meta.load-css('components/page-header');
+  @include meta.load-css('components/empty-state');
+  @include meta.load-css('components/filter-bar');
+  @include meta.load-css('components/lesson-card');
+  @include meta.load-css('components/concept-card');
+  @include meta.load-css('components/editor');
+  @include meta.load-css('components/editor-code-mode');
 }

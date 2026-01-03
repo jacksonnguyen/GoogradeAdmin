@@ -12,7 +12,7 @@
 }
 
 .editor-form {
-  @extend .card;
+  @apply bg-surface rounded-2xl border-2 border-border p-6 shadow-sm;
   @apply mb-6;
 
   &__row {

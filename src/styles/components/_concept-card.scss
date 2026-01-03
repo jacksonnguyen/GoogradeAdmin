@@ -1,6 +1,6 @@
 // Concept Card Component (BEM)
 .concept-card {
-  @extend .card;
+  @apply bg-surface rounded-2xl border-2 border-border p-6 shadow-sm;
   @apply hover:shadow-md transition-shadow cursor-pointer;
 
   &__header {
