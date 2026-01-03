@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Plus, ArrowRight, Library, Users, PlusCircle } from 'lucide-react';
+import { Plus, ArrowRight, Library, PlusCircle } from 'lucide-react';
 
 export function Dashboard() {
   const navigate = useNavigate();

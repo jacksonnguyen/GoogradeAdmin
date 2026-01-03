@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { generateLessonContent } from '../services/ai/gemini';
 import { LessonService } from '../services/database/lessons';
+import { QuizData } from '../types/quiz';
+import { Json } from '../types/database.types';
 
 import { DEFAULT_GEMINI_KEY } from '../constants';
 export function useLessonEditor(lessonId?: string) {
@@ -12,6 +14,8 @@ export function useLessonEditor(lessonId?: string) {
   const [grade, setGrade] = useState('8');
   const [content, setContent] = useState('');
   const [customCss, setCustomCss] = useState('');
+  const [lessonType, setLessonType] = useState<'theory' | 'practice'>('theory');
+  const [quizData, setQuizData] = useState<QuizData | null>(null);
   const [prerequisites, setPrerequisites] = useState<Set<string>>(new Set());
   
   // Initialize from localStorage OR default
@@ -44,6 +48,10 @@ export function useLessonEditor(lessonId?: string) {
         setTitle(lesson.title);
         setContent(lesson.content || '');
         setCustomCss(lesson.custom_css || '');
+        setLessonType(lesson.type);
+        if (lesson.quiz_data) {
+             setQuizData(lesson.quiz_data as unknown as QuizData);
+        }
       }
     } catch (err) {
       console.error(err);
@@ -99,7 +107,8 @@ export function useLessonEditor(lessonId?: string) {
             title: title,
             content: content,
             custom_css: customCss,
-            type: 'theory' as const,
+            type: lessonType,
+            quiz_data: quizData as unknown as Json,
             updated_at: new Date().toISOString()
         };
 
@@ -128,6 +137,8 @@ export function useLessonEditor(lessonId?: string) {
     grade, setGrade,
     content, setContent,
     customCss, setCustomCss,
+    lessonType, setLessonType,
+    quizData, setQuizData,
     prerequisites, setPrerequisites,
     // We don't expose setApiKey anymore to the Editor
     

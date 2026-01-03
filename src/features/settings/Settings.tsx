@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Button } from '../../components/ui/Button';
 import { Save } from 'lucide-react';
 
 import { DEFAULT_GEMINI_KEY } from '../../constants';
@@ -64,7 +63,7 @@ export function Settings() {
             <div className="flex justify-end pt-4 border-t border-gray-100">
               <button 
                 onClick={handleSave} 
-                className="inline-flex items-center justify-center px-4 py-2 rounded-xl font-bold transition-all duration-200 bg-indigo-600 hover:bg-indigo-700 text-white shadow-md hover:shadow-lg active:scale-95"
+                className="inline-flex items-center justify-center px-4 py-2 rounded-xl font-bold transition-all duration-200 bg-indigo-600 hover:bg-indigo-700 text-white shadow-md hover:shadow-lg active:scale-95 cursor-pointer"
               >
                 <Save size={16} className="mr-2" />
                 Save Preferences

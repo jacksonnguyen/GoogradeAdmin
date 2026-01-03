@@ -24,4 +24,8 @@
   @include meta.load-css('components/editor');
   @include meta.load-css('components/editor-code-mode');
   @include meta.load-css('components/relationship-manager');
+  @include meta.load-css('components/lesson-importer');
+  @include meta.load-css('components/quiz-editor');
+  @include meta.load-css('components/question-editor');
 }
+

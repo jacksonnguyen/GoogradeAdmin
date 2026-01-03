@@ -14,6 +14,8 @@ import Link from '@tiptap/extension-link';
 import TextAlign from '@tiptap/extension-text-align';
 import { EditorToolbar } from './components/EditorToolbar';
 import { RelationshipManager } from './components/RelationshipManager';
+import { LessonImporter, ImportedLessonData } from './components/LessonImporter';
+import { QuizEditor } from './components/QuizEditor';
 
 // Mock Data for Relationships
 const conceptsDB = [
@@ -31,6 +33,8 @@ export function Editor() {
     grade, setGrade,
     content, setContent,
     customCss, setCustomCss,
+    lessonType, setLessonType,
+    quizData, setQuizData,
     prerequisites, setPrerequisites,
     isSaving, status,
     saveLesson,
@@ -64,6 +68,13 @@ export function Editor() {
         editor.commands.setContent(content);
     }
   }, [content, editor]);
+  
+  // Update Editor content if switching BACK to theory mode
+  useEffect(() => {
+    if (lessonType === 'theory' && editor && content !== editor.getHTML()) {
+        editor.commands.setContent(content);
+    }
+  }, [lessonType]);
 
 
   // Relationship handlers (passed to RelationshipManager)
@@ -77,6 +88,19 @@ export function Editor() {
     const newSet = new Set(prerequisites);
     newSet.delete(id);
     setPrerequisites(newSet);
+  };
+
+  const handleImportLesson = (data: ImportedLessonData) => {
+    if (confirm("Importing a lesson will overwrite current content. Continue?")) {
+      setTitle(data.title);
+      setGrade(data.grade);
+      setContent(data.content);
+      if (data.custom_css) setCustomCss(data.custom_css);
+      // Reset editor content if editor instance exists
+      if (editor) {
+        editor.commands.setContent(data.content);
+      }
+    }
   };
 
 // AI Chat Logic
@@ -135,39 +159,60 @@ export function Editor() {
           />
         </div>
         <div className="flex items-center gap-4">
-           {/* View Mode Toggle */}
+           {/* Importer */}
+           <LessonImporter onImport={handleImportLesson} />
+
+           {/* Lesson Type Toggle */}
            <div className="bg-gray-100 p-1 rounded-lg flex gap-1 mr-2">
             <button 
-              onClick={() => setViewMode('visual')}
-              className={`p-1.5 rounded-md transition-all ${viewMode === 'visual' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
-              title="Visual Editor"
+              onClick={() => setLessonType('theory')}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${lessonType === 'theory' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
-              <LayoutTemplate size={18} />
+              Lý thuyết
             </button>
             <button 
-              onClick={() => setViewMode('code')}
-              className={`p-1.5 rounded-md transition-all ${viewMode === 'code' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
-              title="Code Editor (HTML/CSS)"
+              onClick={() => setLessonType('practice')}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${lessonType === 'practice' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
-              <Code size={18} />
+              Bài tập
             </button>
-          </div>
+           </div>
 
-          <span className="text-xs text-gray-400 flex items-center gap-1">
-            <Cloud size={14} /> {status || 'Đã lưu'}
-          </span>
-          <button 
-            onClick={saveLesson} 
-            disabled={isSaving}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg text-sm font-medium shadow-sm transition-all hover:shadow-md flex items-center gap-2 disabled:opacity-70"
-          >
-            {isSaving ? (
-              <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
-            ) : (
-              <Save size={18} />
-            )}
-            {isSaving ? "Đang lưu..." : "Lưu & Đóng"}
-          </button>
+           {/* View Mode Toggle (Theory Only) */}
+           {lessonType === 'theory' && (
+             <div className="bg-gray-100 p-1 rounded-lg flex gap-1 mr-2">
+              <button 
+                onClick={() => setViewMode('visual')}
+                className={`p-1.5 rounded-md transition-all ${viewMode === 'visual' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                title="Visual Editor"
+              >
+                <LayoutTemplate size={18} />
+              </button>
+              <button 
+                onClick={() => setViewMode('code')}
+                className={`p-1.5 rounded-md transition-all ${viewMode === 'code' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                title="Code Editor (HTML/CSS)"
+              >
+                <Code size={18} />
+              </button>
+             </div>
+           )}
+
+           <span className="text-xs text-gray-400 flex items-center gap-1">
+             <Cloud size={14} /> {status || 'Đã lưu'}
+           </span>
+           <button 
+             onClick={saveLesson} 
+             disabled={isSaving}
+             className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg text-sm font-medium shadow-sm transition-all hover:shadow-md flex items-center gap-2 disabled:opacity-70"
+           >
+             {isSaving ? (
+               <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+             ) : (
+               <Save size={18} />
+             )}
+             {isSaving ? "Đang lưu..." : "Lưu & Đóng"}
+           </button>
         </div>
       </div>
 
@@ -175,7 +220,9 @@ export function Editor() {
         {/* 2. MAIN EDITOR AREA (Left/Center) */}
         <div className="flex-1 flex flex-col overflow-hidden border-r border-gray-200 bg-gray-50/30">
           
-          {viewMode === 'visual' ? (
+          {lessonType === 'practice' ? (
+             <QuizEditor quizData={quizData} onChange={setQuizData} />
+          ) : viewMode === 'visual' ? (
             <>
               {/* Visual Toolbar - Sticky Header */}
               <div className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b border-gray-200 px-6 py-2 flex items-center justify-between shadow-sm">

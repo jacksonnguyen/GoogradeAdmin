@@ -40,6 +40,7 @@ export interface Database {
           slug: string | null
           content: string | null
           custom_css: string | null
+          quiz_data: Json | null
           type: 'theory' | 'practice'
           order_index: number
           is_published: boolean
