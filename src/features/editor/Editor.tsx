@@ -1,14 +1,21 @@
 import { 
   ArrowLeft, Cloud, Save, 
   Wand2, SlidersHorizontal, Network, Search, FileText, ChevronDown, X, Lightbulb, Link2Off,
-  Code, Eye, LayoutTemplate 
+  Code, Eye, LayoutTemplate, Bot, Settings as SettingsIcon, Send
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useLessonEditor } from '../../hooks/useLessonEditor';
-import { TipTapEditor } from '../../components/ui/TipTapEditor';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-// Mock Data for Relationships (until connected to DB)
+// TipTap Imports
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Underline from '@tiptap/extension-underline';
+import Link from '@tiptap/extension-link';
+import TextAlign from '@tiptap/extension-text-align';
+import { EditorToolbar } from './components/EditorToolbar';
+
+// Mock Data for Relationships
 const conceptsDB = [
   { id: '101', name: "Hằng đẳng thức đáng nhớ", grade: "Lớp 8" },
   { id: '102', name: "Phân tích đa thức thành nhân tử", grade: "Lớp 8" },
@@ -23,15 +30,43 @@ export function Editor() {
     title, setTitle,
     grade, setGrade,
     content, setContent,
-    customCss, setCustomCss, // Added customCss state
+    customCss, setCustomCss,
     prerequisites, setPrerequisites,
     isGenerating, isSaving, status,
-    generateContent, saveLesson
+    saveLesson
   } = useLessonEditor(id);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
-  const [viewMode, setViewMode] = useState<'visual' | 'code'>('visual'); // visual | code
+  const [viewMode, setViewMode] = useState<'visual' | 'code'>('visual');
+  const [activeTab, setActiveTab] = useState<'settings' | 'ai'>('settings');
+  const [chatInput, setChatInput] = useState("");
+  const [chatMessages, setChatMessages] = useState<{role: 'user' | 'ai', text: string}[]>([
+    { role: 'ai', text: 'Hello! I am your Lesson Assistant. How can I help you write this lesson today?' }
+  ]);
+
+  // Initialize TipTap Editor directly here
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      Underline,
+      Link.configure({ openOnClick: false }),
+      TextAlign.configure({ types: ['heading', 'paragraph'] }),
+    ],
+    content: content,
+    onUpdate: ({ editor }) => {
+      setContent(editor.getHTML());
+    },
+  });
+
+  // Sync content updates from Hook -> Editor (only when content changes externally, e.g. initial load)
+  useEffect(() => {
+    if (editor && content && editor.getHTML() !== content && !editor.isFocused) {
+        // Only set if not focused to avoid cursor jumping
+        editor.commands.setContent(content);
+    }
+  }, [content, editor]);
+
 
   // Relationship Logic
   const filteredRelations = conceptsDB.filter(
@@ -52,10 +87,24 @@ export function Editor() {
     setPrerequisites(newSet);
   };
 
+  // AI Chat Logic (Mock)
+  const handleSendMessage = () => {
+    if (!chatInput.trim()) return;
+    
+    const newMsg = { role: 'user' as const, text: chatInput };
+    setChatMessages(prev => [...prev, newMsg]);
+    setChatInput("");
+    
+    // Simulate AI response
+    setTimeout(() => {
+        setChatMessages(prev => [...prev, { role: 'ai', text: `That's a great point about "${newMsg.text}". I can help you expand on that in the main content. Would you like me to draft a paragraph?` }]);
+    }, 1000);
+  };
+
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] bg-white animate-in fade-in zoom-in-95 duration-200">
       
-      {/* Editor Top Bar */}
+      {/* 1. TOP BAR: Navigation & Actions */}
       <div className="h-16 border-b border-gray-200 flex items-center justify-between px-6 bg-white z-20 flex-shrink-0">
         <div className="flex items-center gap-4 flex-1">
           <button 
@@ -75,8 +124,8 @@ export function Editor() {
           />
         </div>
         <div className="flex items-center gap-4">
-          {/* View Mode Toggle */}
-          <div className="bg-gray-100 p-1 rounded-lg flex gap-1 mr-2">
+           {/* View Mode Toggle */}
+           <div className="bg-gray-100 p-1 rounded-lg flex gap-1 mr-2">
             <button 
               onClick={() => setViewMode('visual')}
               className={`p-1.5 rounded-md transition-all ${viewMode === 'visual' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
@@ -94,7 +143,7 @@ export function Editor() {
           </div>
 
           <span className="text-xs text-gray-400 flex items-center gap-1">
-            <Cloud size={14} /> {status || 'Đã lưu tự động'}
+            <Cloud size={14} /> {status || 'Đã lưu'}
           </span>
           <button 
             onClick={saveLesson} 
@@ -112,31 +161,36 @@ export function Editor() {
       </div>
 
       <div className="flex-1 flex overflow-hidden">
-        {/* LEFT: Editor Area (Visual or Code) */}
-        <div className="flex-1 flex flex-col overflow-y-auto border-r border-gray-200 bg-gray-50/30">
+        {/* 2. MAIN EDITOR AREA (Left/Center) */}
+        <div className="flex-1 flex flex-col overflow-hidden border-r border-gray-200 bg-gray-50/30">
           
           {viewMode === 'visual' ? (
             <>
-              {/* Visual Toolbar */}
-              <div className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b border-gray-200 px-6 py-2.5 flex items-center gap-1 shadow-sm">
-                 <div className="text-xs text-gray-400 italic">Visual Editor</div>
-                 <div className="flex-1"></div>
+              {/* Visual Toolbar - Sticky Header */}
+              <div className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b border-gray-200 px-6 py-2 flex items-center justify-between shadow-sm">
+                 <div className="flex items-center gap-2">
+                    <EditorToolbar editor={editor} />
+                 </div>
+                 
+                 {/* Quick AI Action (Optional) */}
                  <button 
-                    onClick={generateContent}
-                    disabled={isGenerating}
-                    className="text-xs text-indigo-600 font-semibold hover:bg-indigo-50 px-3 py-1.5 rounded-full flex items-center gap-1 transition-colors border border-transparent hover:border-indigo-100 disabled:opacity-50"
+                    className="text-xs text-indigo-600 font-semibold hover:bg-indigo-50 px-3 py-1.5 rounded-full flex items-center gap-1 transition-colors border border-transparent hover:border-indigo-100"
+                    onClick={() => setActiveTab('ai')} // Open AI tab
                  >
-                   <Wand2 size={16} /> {isGenerating ? 'AI đang viết...' : 'Viết bằng AI'}
+                   <Wand2 size={16} /> Ask AI
                  </button>
               </div>
 
-              {/* Styled components wrapper to apply custom CSS live */}
+               {/* Editor Content */}
               <style>{customCss}</style>
-              <div className="flex-1 relative lesson-preview-container">
-                 <TipTapEditor content={content} onChange={setContent} className="min-h-full p-10 max-w-3xl mx-auto" />
+              <div className="flex-1 overflow-y-auto cursor-text" onClick={() => editor?.chain().focus().run()}>
+                 <div className="max-w-3xl mx-auto py-12 px-8 min-h-full bg-white shadow-sm my-4 rounded-xl">
+                    <EditorContent editor={editor} className="prose prose-lg max-w-none focus:outline-none" />
+                 </div>
               </div>
             </>
           ) : (
+            // Code Editor Mode
             <div className="editor-code-mode h-full flex flex-col">
                 <div className="flex-1 flex min-h-0">
                     {/* HTML Panel */}
@@ -173,122 +227,163 @@ export function Editor() {
           )}
         </div>
 
-        {/* RIGHT: Settings Side Panel */}
-        <div className="w-80 bg-white flex flex-col border-l border-gray-200 flex-shrink-0 shadow-[rgba(0,0,0,0.05)_0px_0px_10px] z-10">
-          <div className="p-5 border-b border-gray-100">
-            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
-              <SlidersHorizontal size={16} /> Cấu hình
-            </h3>
+        {/* 3. SETTINGS & AI SIDEBAR (Right) */}
+        <div className="w-80 bg-white flex flex-col border-l border-gray-200 flex-shrink-0 shadow-lg z-30">
+          
+          {/* Sidebar Tabs */}
+          <div className="flex border-b border-gray-200">
+            <button 
+                onClick={() => setActiveTab('settings')}
+                className={`flex-1 py-3 text-sm font-medium flex items-center justify-center gap-2 border-b-2 transition-colors ${activeTab === 'settings' ? 'border-indigo-600 text-indigo-600 bg-indigo-50/30' : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'}`}
+            >
+                <SettingsIcon size={16} /> Cấu hình
+            </button>
+            <button 
+                onClick={() => setActiveTab('ai')}
+                className={`flex-1 py-3 text-sm font-medium flex items-center justify-center gap-2 border-b-2 transition-colors ${activeTab === 'ai' ? 'border-indigo-600 text-indigo-600 bg-indigo-50/30' : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'}`}
+            >
+                <Bot size={16} /> Trợ lý AI
+            </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-5 space-y-8">
-            {/* Chapter Settings */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Lớp</label>
-              <div className="relative">
-                <select 
-                  value={grade}
-                  onChange={(e) => setGrade(e.target.value)}
-                  className="w-full text-sm border-gray-200 rounded-lg shadow-sm border p-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none appearance-none bg-gray-50 text-gray-700"
-                >
-                  <option value="8">Lớp 8</option>
-                  <option value="9">Lớp 9</option>
-                </select>
-                <ChevronDown className="absolute right-3 top-3 text-gray-400 pointer-events-none" size={18} />
-              </div>
-            </div>
-
-            {/* RELATIONSHIPS MANAGER */}
-            <div className="bg-white rounded-xl border border-indigo-100 shadow-sm p-4 relative overflow-visible">
-              <div className="absolute -top-3 left-3 bg-white px-2">
-                <label className="flex items-center gap-1.5 text-sm font-bold text-indigo-600">
-                  <Network size={18} />
-                  Bài học liên quan
-                </label>
-              </div>
-              
-              <p className="text-xs text-gray-500 mb-4 mt-2">Gắn thẻ các bài học cũ (Lớp 7, 8) để học sinh ôn tập trước.</p>
-              
-              {/* Search */}
-              <div className="relative group mb-4">
-                <Search className="absolute left-3 top-2.5 text-gray-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
-                <input 
-                  type="text" 
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onFocus={() => { if(searchQuery) setShowDropdown(true) }}
-                  // onBlur -> setTimeout to allow click
-                  className="w-full text-sm border border-gray-200 rounded-lg pl-9 pr-3 py-2 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition-all placeholder-gray-400" 
-                  placeholder="Tìm kiến thức cũ..." 
-                />
-                
-                {/* Dropdown Results */}
-                {showDropdown && searchQuery && (
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-100 rounded-xl shadow-xl z-50 max-h-56 overflow-y-auto animate-in fade-in zoom-in-95 duration-100">
-                    {filteredRelations.length > 0 ? (
-                      filteredRelations.map(c => (
-                        <div 
-                          key={c.id}
-                          onClick={() => addRelation(c.id)} 
-                          className="px-4 py-3 hover:bg-indigo-50 cursor-pointer border-b border-gray-50 last:border-0 flex justify-between items-center group transition-colors"
+          <div className="flex-1 overflow-y-auto bg-gray-50/30">
+            {activeTab === 'settings' ? (
+                // SETTINGS PANEL
+                <div className="p-5 space-y-8">
+                    {/* Chapter Settings */}
+                    <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Lớp</label>
+                    <div className="relative">
+                        <select 
+                        value={grade}
+                        onChange={(e) => setGrade(e.target.value)}
+                        className="w-full text-sm border-gray-200 rounded-lg shadow-sm border p-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none appearance-none bg-white text-gray-700"
                         >
-                          <div className="flex items-center gap-2">
-                            <FileText className="text-gray-400 group-hover:text-indigo-500" size={16} />
-                            <span className="text-sm text-gray-700 group-hover:text-indigo-700 font-medium">{c.name}</span>
-                          </div>
-                          <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full group-hover:bg-white border group-hover:border-indigo-100">{c.grade}</span>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="px-4 py-3 text-xs text-gray-400 text-center italic">Không tìm thấy</div>
-                    )}
-                  </div>
-                )}
-                {/* Overlay to close dropdown */}
-                {showDropdown && <div className="fixed inset-0 z-40 bg-transparent" onClick={() => setShowDropdown(false)} />}
-              </div>
+                        <option value="8">Lớp 8</option>
+                        <option value="9">Lớp 9</option>
+                        </select>
+                        <ChevronDown className="absolute right-3 top-3 text-gray-400 pointer-events-none" size={18} />
+                    </div>
+                    </div>
 
-              {/* Selected List */}
-              <div className="space-y-2">
-                {prerequisites.size === 0 ? (
-                  <div className="text-center py-6 border-2 border-dashed border-gray-100 rounded-lg bg-gray-50/50">
-                    <Link2Off className="text-gray-300 mx-auto mb-1" size={30} />
-                    <p className="text-xs text-gray-400 font-medium">Chưa có liên kết nào</p>
-                  </div>
-                ) : (
-                  Array.from(prerequisites).map(id => {
-                    const concept = conceptsDB.find(c => c.id === id); // In real app, this would be looked up properly
-                    if (!concept) return null;
-                    return (
-                      <div key={id} className="flex items-center justify-between bg-white border border-gray-200 shadow-sm rounded-lg px-3 py-2 text-sm group hover:border-indigo-300 transition-all">
-                        <div className="flex flex-col overflow-hidden">
-                          <span className="text-gray-800 font-medium text-xs truncate w-40" title={concept.name}>{concept.name}</span>
-                          <div className="flex items-center gap-1 mt-0.5">
-                              <span className={`w-1.5 h-1.5 rounded-full ${concept.grade === 'Lớp 8' ? 'bg-green-500' : 'bg-orange-500'}`}></span>
-                              <span className="text-[10px] text-gray-400">{concept.grade}</span>
-                          </div>
+                    {/* RELATIONSHIPS MANAGER */}
+                    <div className="bg-white rounded-xl border border-indigo-100 shadow-sm p-4 relative overflow-visible">
+                    <div className="absolute -top-3 left-3 bg-white px-2">
+                        <label className="flex items-center gap-1.5 text-sm font-bold text-indigo-600">
+                        <Network size={18} />
+                        Bài học liên quan
+                        </label>
+                    </div>
+                    
+                    <p className="text-xs text-gray-500 mb-4 mt-2">Gắn thẻ các bài học cũ (Lớp 7, 8) để học sinh ôn tập trước.</p>
+                    
+                    {/* Search Input for Relations */}
+                    <div className="relative group mb-4">
+                        <Search className="absolute left-3 top-2.5 text-gray-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
+                        <input 
+                        type="text" 
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onFocus={() => { if(searchQuery) setShowDropdown(true) }}
+                        className="w-full text-sm border border-gray-200 rounded-lg pl-9 pr-3 py-2 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition-all placeholder-gray-400" 
+                        placeholder="Tìm kiến thức cũ..." 
+                        />
+                        
+                        {/* Dropdown Results */}
+                        {showDropdown && searchQuery && (
+                        <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-100 rounded-xl shadow-xl z-50 max-h-56 overflow-y-auto animate-in fade-in zoom-in-95 duration-100">
+                            {filteredRelations.length > 0 ? (
+                            filteredRelations.map(c => (
+                                <div 
+                                key={c.id}
+                                onClick={() => addRelation(c.id)} 
+                                className="px-4 py-3 hover:bg-indigo-50 cursor-pointer border-b border-gray-50 last:border-0 flex justify-between items-center group transition-colors"
+                                >
+                                <div className="flex items-center gap-2">
+                                    <FileText className="text-gray-400 group-hover:text-indigo-500" size={16} />
+                                    <span className="text-sm text-gray-700 group-hover:text-indigo-700 font-medium">{c.name}</span>
+                                </div>
+                                <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full group-hover:bg-white border group-hover:border-indigo-100">{c.grade}</span>
+                                </div>
+                            ))
+                            ) : (
+                            <div className="px-4 py-3 text-xs text-gray-400 text-center italic">Không tìm thấy</div>
+                            )}
                         </div>
-                        <button onClick={() => removeRelation(id)} className="text-gray-300 hover:text-red-500 hover:bg-red-50 rounded p-1 transition-colors">
-                          <X size={16} />
-                        </button>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            </div>
-            
-            {/* Extra Info */}
-              <div className="p-4 bg-yellow-50 rounded-xl border border-yellow-100">
-              <div className="flex gap-2">
-                <Lightbulb className="text-yellow-600 flex-shrink-0" size={18} />
-                <div>
-                  <p className="text-xs font-bold text-yellow-800">Mẹo quản lý</p>
-                  <p className="text-[11px] text-yellow-700 mt-1 leading-relaxed">Việc liên kết bài học giúp hệ thống gợi ý lộ trình ôn tập tự động.</p>
+                        )}
+                        {showDropdown && <div className="fixed inset-0 z-40 bg-transparent" onClick={() => setShowDropdown(false)} />}
+                    </div>
+
+                    {/* Selected List */}
+                    <div className="space-y-2">
+                        {prerequisites.size === 0 ? (
+                        <div className="text-center py-6 border-2 border-dashed border-gray-100 rounded-lg bg-gray-50/50">
+                            <Link2Off className="text-gray-300 mx-auto mb-1" size={30} />
+                            <p className="text-xs text-gray-400 font-medium">Chưa có liên kết nào</p>
+                        </div>
+                        ) : (
+                        Array.from(prerequisites).map(id => {
+                            const concept = conceptsDB.find(c => c.id === id);
+                            if (!concept) return null;
+                            return (
+                            <div key={id} className="flex items-center justify-between bg-white border border-gray-200 shadow-sm rounded-lg px-3 py-2 text-sm group hover:border-indigo-300 transition-all">
+                                <div className="flex flex-col overflow-hidden">
+                                <span className="text-gray-800 font-medium text-xs truncate w-40" title={concept.name}>{concept.name}</span>
+                                <div className="flex items-center gap-1 mt-0.5">
+                                    <span className={`w-1.5 h-1.5 rounded-full ${concept.grade === 'Lớp 8' ? 'bg-green-500' : 'bg-orange-500'}`}></span>
+                                    <span className="text-[10px] text-gray-400">{concept.grade}</span>
+                                </div>
+                                </div>
+                                <button onClick={() => removeRelation(id)} className="text-gray-300 hover:text-red-500 hover:bg-red-50 rounded p-1 transition-colors">
+                                <X size={16} />
+                                </button>
+                            </div>
+                            );
+                        })
+                        )}
+                    </div>
+                    </div>
                 </div>
-              </div>
-            </div>
+            ) : (
+                // AI ASSISTANT PANEL
+                <div className="flex flex-col h-full">
+                    {/* Chat History */}
+                    <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                        {chatMessages.map((msg, idx) => (
+                             <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                <div className={`max-w-[85%] rounded-2xl p-3 text-sm ${
+                                    msg.role === 'user' 
+                                    ? 'bg-indigo-600 text-white rounded-br-none' 
+                                    : 'bg-white border border-gray-200 text-gray-800 rounded-bl-none shadow-sm'
+                                }`}>
+                                   {msg.text}
+                                </div>
+                             </div>
+                        ))}
+                    </div>
 
+                    {/* Chat Input */}
+                    <div className="p-3 bg-white border-t border-gray-200">
+                        <div className="relative">
+                            <textarea 
+                                value={chatInput}
+                                onChange={(e) => setChatInput(e.target.value)}
+                                onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); }}}
+                                placeholder="Gõ yêu cầu của bạn..."
+                                className="w-full bg-gray-50 border-gray-200 rounded-xl pl-3 pr-10 py-3 text-sm focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 outline-none resize-none no-scrollbar h-12 max-h-32"
+                            />
+                            <button 
+                                onClick={handleSendMessage}
+                                disabled={!chatInput.trim()}
+                                className="absolute right-2 top-2 p-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:hover:bg-indigo-600 transition-colors"
+                            >
+                                <Send size={14} />
+                            </button>
+                        </div>
+                        <p className="text-[10px] text-gray-400 text-center mt-2">AI có thể mắc lỗi. Vui lòng kiểm tra lại.</p>
+                    </div>
+                </div>
+            )}
           </div>
         </div>
       </div>

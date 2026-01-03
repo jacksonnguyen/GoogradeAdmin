@@ -21,20 +21,21 @@
 
 // Base styles
 @layer base {
-  @import 'base/reset';
-  @import 'base/typography';
+  @use 'base/reset';
+  @use 'base/typography';
 }
 
 // Components
 @layer components {
-  @import 'components/button';
-  @import 'components/card';
-  @import 'components/form';
-  @import 'components/sidebar';
-  @import 'components/page-header';
-  @import 'components/empty-state';
-  @import 'components/filter-bar';
-  @import 'components/lesson-card';
-  @import 'components/concept-card';
-  @import 'components/editor';
+  @use 'components/button';
+  @use 'components/card';
+  @use 'components/form';
+  @use 'components/sidebar';
+  @use 'components/page-header';
+  @use 'components/empty-state';
+  @use 'components/filter-bar';
+  @use 'components/lesson-card';
+  @use 'components/concept-card';
+  @use 'components/editor';
+  @use 'components/editor-code-mode';
 }
